@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles/ base.css">
+    <title>Book Engine</title>
+</head>
+
+<body>
+    <header>
+        <h1>Best Books!</h1>
+    </header>
+    <main>
+        <h2>Search Results</h2>
+
+        <% TheBook.forEach(book=>{ %>
+            <section>
+                <img src="<%= book.imageLinks %> " alt="">
+                <h4>
+                    <%= book.title %>
+                </h4>
+                <h3>
+                    <%= book.author %>
+                </h3>
+                <p>
+                    <%= book.desecration %>
+                </p>
+            </section>
+            <% }) %>
+    </main>
+</body>
+
+</html>

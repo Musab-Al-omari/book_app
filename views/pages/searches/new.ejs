@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Book Engine</title>
+    <link rel="stylesheet" href="/styles/ base.css">
+</head>
+
+<body>
+    <h2>Search by Title or Author</h2>
+
+    <form action="/searches" method="post">
+        <fieldset>
+            <input type="text" name="search_field" placeholder="Enter a title or Author" required>
+            <div id="row">
+                <label for="Title">Title</label>
+                <input type="checkbox" name="searchBy" value="Title">
+            </div>
+            <div id="row">
+                <label for="Author">Author</label>
+                <input type="checkbox" name="searchBy" value="Author">
+            </div>
+            <button type="submit">Search the Google Books API</button>
+
+    </form>
+
+</body>
+
+</html>

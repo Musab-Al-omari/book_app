@@ -1,8 +1,5 @@
 'use strict';
 
-
-
-
 // app dependencies
 
 require('dotenv').config();
@@ -10,8 +7,10 @@ const express = require('express')
 const app = express()
 const superagent = require('superagent')
 const PORT = process.env.PORT
-
-
+  // const cors = require('cors');
+const pg = require('pg')
+const client = new pg.Client(process.env.DATABASE_URL);
+client.on('Erroe', err => console.log('pg problem', err));
 
 // view engine to use ejs
 app.set('view engine', 'ejs');
@@ -20,14 +19,22 @@ app.use(express.urlencoded({ extended: true }))
 
 // Home page render
 app.get('/', (req, res) => {
-  res.render('pages/index');
+  let SQL = 'SELECT * FROM  books;';
+  client.query(SQL)
+    .then(data => {
+      res.render('index', { data: data.rows, total: data.rowCount })
+
+    }).catch(err => console.log(err))
 });
 
 
 // API routes
-app.get('/searches/new', renderForm)
-app.post('/searches', renderTheResultPage)
+app.get('/books/details/:id', handelSingularBook)
 
+
+app.get('/searches/new', renderForm)
+
+app.post('/searches', renderTheResultPage)
 
 
 // function
@@ -35,6 +42,18 @@ app.post('/searches', renderTheResultPage)
 function renderForm(req, res) {
   res.render('pages/searches/new')
 }
+
+function handelSingularBook(req, res) {
+  let SQL = 'SELECT *FROM books where id=$1';
+  let theValueOfId = [req.params.id]
+  client.query(SQL, theValueOfId).then(data => {
+    console.log(data);
+    let result = data.rows[0];
+    res.render('pages/searches/detail', { date: result })
+  })
+
+}
+
 
 
 
@@ -61,11 +80,11 @@ function renderTheResultPage(req, res) {
   searchBy.push(req.body.searchBy);
   // console.log(searchBy);
   let url = '';
-
+  let x = 0
   for (let i = 0; i < searchBy.length; i++) {
     if (searchBy[i] === 'Title' || searchBy[i] === 'Author') {
       url = `https://www.googleapis.com/books/v1/volumes?q=${search_field}+${searchBy[i]}` //stolen from my team
-      console.log(search_field, searchBy[i]);
+      console.log(`https://www.googleapis.com/books/v1/volumes?q=${search_field}+${searchBy[i]}`);
       break;
     } else {
       url = `https://www.googleapis.com/books/v1/volumes?q=${search_field}+${searchBy[i]}` //stolen from my team
@@ -74,14 +93,26 @@ function renderTheResultPage(req, res) {
   }
 
   superagent.get(url).then(result => {;
-
     let myBook = result.body.items
     myBook.forEach(object => {
       // if (object.volumeInfo.imageLinks === true) {
       //   new Values(object.volumeInfo.title, object.volumeInfo.authors.join(' and '), object.volumeInfo.description, object.volumeInfo.imageLinks.smallThumbnail)
       // } else {
-      console.log(object.volumeInfo);
-      new Values(object.volumeInfo.title, object.volumeInfo.authors.join(' and '), object.volumeInfo.description, object.volumeInfo.imageLinks.smallThumbnail)
+
+      let image = '';
+      if (object.volumeInfo.imageLinks) {
+        image = object.volumeInfo.imageLinks.smallThumbnail
+      } else {
+        image = 'https://i.imgur.com/J5LVHEL.jpg'
+      }
+
+      let author;
+      if (typeof(object.volumeInfo.authors) === 'array') {
+        author = object.volumeInfo.authors.join(' and ')
+      } else {
+        author = object.volumeInfo.authors
+      }
+      new Values(object.volumeInfo.title, author, object.volumeInfo.description, image)
         // }
 
     });
@@ -90,12 +121,16 @@ function renderTheResultPage(req, res) {
   })
 }
 
-function notFoundHandler(request, response) {
-  response.status(404).sendFile('./error', { root: './pages' })
-}
+// function notFoundHandler(request, response) {
+//   response.status(404).sendFile('./error', { root: './pages' })
+// }
 
-function errorHandler(err, request, response, next) {
-  response.status(500).render('pages/error');
-}
+// function errorHandler(err, request, response, next) {
+//   response.status(500).render('pages/error');
+// }
 app.get('*', (req, res) => { res.status(404).send('Page Not Found gg man') })
-app.listen(PORT, () => console.log(`Mosab app Running on ${PORT}`))
+
+client.connect()
+  .then(() => {
+    app.listen(PORT, () => console.log(`Mosab app Running on ${PORT}`))
+  })

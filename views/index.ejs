@@ -10,7 +10,29 @@
 <body>
     <header>
         <h1>Best Books</h1>
+        <h2>count:
+            <%=total %>
+        </h2>
     </header>
+    <main>
+        <% data.forEach(item=>{ %>
+            <section>
+                <img src="<%=item.imge_url%>">
+
+                <h5>
+                    <%=item.title%>
+                </h5>
+                <h6>
+                    <%=item.author%>
+                </h6>
+                <button><a href="/">View Details</a></button>
+            </section>
+
+
+            <% }) %>
+
+
+    </main>
 
 </body>
 

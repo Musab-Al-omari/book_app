@@ -1,8 +1,5 @@
 'use strict';
 
-
-
-
 // app dependencies
 
 require('dotenv').config();
@@ -10,8 +7,10 @@ const express = require('express')
 const app = express()
 const superagent = require('superagent')
 const PORT = process.env.PORT
-
-
+  // const cors = require('cors');
+const pg = require('pg')
+const client = new pg.Client(process.env.DATABASE_URL);
+client.on('Erroe', err => console.log('pg problem', err));
 
 // view engine to use ejs
 app.set('view engine', 'ejs');
@@ -20,14 +19,22 @@ app.use(express.urlencoded({ extended: true }))
 
 // Home page render
 app.get('/', (req, res) => {
-  res.render('index');
+  let SQL = 'SELECT * FROM  books;';
+  client.query(SQL)
+    .then(data => {
+      res.render('index', { data: data.rows, total: data.rowCount })
+
+    }).catch(err => console.log(err))
 });
 
 
 // API routes
-app.get('/searches/new', renderForm)
-app.post('/searches', renderTheResultPage)
+app.get('/books/details/:id', handelSingularBook)
 
+
+app.get('/searches/new', renderForm)
+
+app.post('/searches', renderTheResultPage)
 
 
 // function
@@ -35,6 +42,18 @@ app.post('/searches', renderTheResultPage)
 function renderForm(req, res) {
   res.render('pages/searches/new')
 }
+
+function handelSingularBook(req, res) {
+  let SQL = 'SELECT *FROM books where id=$1';
+  let theValueOfId = [req.params.id]
+  client.query(SQL, theValueOfId).then(data => {
+    console.log(data);
+    let result = data.rows[0];
+    res.render('pages/searches/detail', { date: result })
+  })
+
+}
+
 
 
 
@@ -110,4 +129,8 @@ function renderTheResultPage(req, res) {
 //   response.status(500).render('pages/error');
 // }
 app.get('*', (req, res) => { res.status(404).send('Page Not Found gg man') })
-app.listen(PORT, () => console.log(`Mosab app Running on ${PORT}`))
+
+client.connect()
+  .then(() => {
+    app.listen(PORT, () => console.log(`Mosab app Running on ${PORT}`))
+  })

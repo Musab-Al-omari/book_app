@@ -5,7 +5,9 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/styles/ reset.css">
     <link rel="stylesheet" href="/styles/ base.css">
+    <link rel="stylesheet" href="/styles/ layout.css">
     <title>Book Engine</title>
 </head>
 
@@ -16,18 +18,28 @@
     <main>
         <h2>Search Results</h2>
 
-        <% TheBook.forEach(book=>{ %>
+        <% TheBook.forEach((book,inx)=>{ %>
             <section>
-                <img src="<%= book.imageLinks %> " alt="">
-                <h4>
-                    <%= book.title %>
-                </h4>
-                <h3>
-                    <%= book.author %>
-                </h3>
-                <p>
-                    <%= book.desecration %>
-                </p>
+                <form action="/" method="POST">
+                    <input type="hidden" value="<%= book.imageLinks%>" name="dasArray" id="image_url<%= inx%>">
+                    <label for="image_url<%= inx%>"> <img src="<%= book.imageLinks%>" alt=""></label>
+
+
+                    <input type="hidden" value="<%=  book.title%>" name="dasArray" id="h4<%= inx%>">
+                    <label for="h4<%= inx%>"> <h4><%=  book.title%></h4></label>
+
+                    <input type="hidden" value="<%= book.author%>" name="dasArray" id="h5<%= inx%>">
+                    <label for="h5<%= inx%>"><h5><%= book.author%></h5></label>
+
+                    <input type="hidden" value="<%= book.description%>" name="dasArray" id="p1<%= inx%>">
+                    <label for="p1<%= inx%>"><p><%= book.description%></p></label>
+
+
+                    <button type="submit">SAVE Book</button>
+                </form>
+
+
+
             </section>
             <% }) %>
     </main>

@@ -1,0 +1,36 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    width: 100%;
+    margin-left: 26%;
+    background-color: rgb(63, 54, 54);
+}
+
+h1 {
+    background-color: rgb(124, 121, 121);
+    color: wheat;
+    width: 50%;
+}
+
+ul {
+    width: 50%;
+    background-color: #000000;
+}
+
+li {
+    color: cornsilk;
+}
+
+
+/* header ul li {
+    display: block;
+} */
+
+header ul li a {
+    display: block;
+    color: rgb(255, 255, 255);
+    padding: 10px 20px;
+    text-decoration: none;
+}

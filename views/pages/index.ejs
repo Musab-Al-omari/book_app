@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Book Engine</title>
+    <link rel="stylesheet" href="/styles/ reset.css">
+    <link rel="stylesheet" href="/styles/ base.css">
+    <link rel="stylesheet" href="/styles/ layout.css">
+
+</head>
+
+<body>
+    <header>
+        <%- include('./searches/header') %>
+            <h2>count:
+                <%=total %>
+            </h2>
+    </header>
+    <main>
+        <% data.forEach((item)=>{ %>
+            <section>
+
+                <img src="<%= item.image_url %> ">
+                <h5>
+                    <%=item.title%>
+                </h5>
+                <h6>
+                    <%=item.author%>
+                </h6>
+                <p>
+                    <%= item.description%>
+                </p>
+                <form action="/books/details/<%= item.id%>" method="GET">
+                    <button>View Details</button>
+                </form>
+            </section>
+            <% }) %>
+
+
+    </main>
+
+</body>
+
+</html>

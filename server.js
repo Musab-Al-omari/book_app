@@ -3,12 +3,17 @@
 // app dependencies
 
 require('dotenv').config();
+
 const express = require('express')
 const app = express()
+
+const methodoverride = require('method-override');
+app.use(methodoverride('_method'));
 const superagent = require('superagent')
+
 const PORT = process.env.PORT
   // const cors = require('cors');
-const pg = require('pg')
+const pg = require('pg');
 const client = new pg.Client(process.env.DATABASE_URL);
 client.on('Erroe', err => console.log('pg problem', err));
 
@@ -22,7 +27,8 @@ app.get('/', (req, res) => {
   let SQL = 'SELECT * FROM  books;';
   client.query(SQL)
     .then(data => {
-      res.render('index', { data: data.rows, total: data.rowCount })
+      console.log('data.rows', data.rows)
+      res.render('pages/index', { data: data.rows, total: data.rowCount })
 
     }).catch(err => console.log(err))
 });
@@ -30,11 +36,52 @@ app.get('/', (req, res) => {
 
 // API routes
 app.get('/books/details/:id', handelSingularBook)
-
+app.put('/books/details/:id', update)
+app.delete('/books/details/:id', myDelete)
 
 app.get('/searches/new', renderForm)
-
 app.post('/searches', renderTheResultPage)
+app.post('/', mainPost)
+
+
+function handelSingularBook(req, res) {
+  let SQL = 'SELECT * FROM books WHERE id=$1';
+  let ids = req.params.id;
+  client.query(SQL, [ids]).then(response => {
+    let result = response.rows[0];
+    res.render('pages/searches/detail', { data: result })
+  })
+
+}
+
+function update(request, response) {
+  let id = request.params.id
+  console.log(request.body);
+  let SQL = 'UPDATE books SET author=$1, title=$2, image_url=$3, description=$4 WHERE id=$5';
+  const { author, title, image_url, description } = request.body
+  let values = [author, title, image_url, description, id]
+  client.query(SQL, values)
+    .then(data => {
+      console.log('mydata', data.rows);
+      response.redirect(`/books/details/${id}`);
+    })
+}
+
+function myDelete(request, response) {
+  let id = request.params.id
+  let SQL = 'DELETE FROM books WHERE id=$1'
+  client.query(SQL, [id]).then(data => {
+    response.redirect('/')
+  })
+
+}
+
+
+
+
+
+
+
 
 
 // function
@@ -43,16 +90,7 @@ function renderForm(req, res) {
   res.render('pages/searches/new')
 }
 
-function handelSingularBook(req, res) {
-  let SQL = 'SELECT *FROM books where id=$1';
-  let theValueOfId = [req.params.id]
-  client.query(SQL, theValueOfId).then(data => {
-    console.log(data);
-    let result = data.rows[0];
-    res.render('pages/searches/detail', { date: result })
-  })
 
-}
 
 
 
@@ -73,18 +111,15 @@ function Values(title, author, desecration, imageLinks) {
 // using form with method post and with this 
 // function routes  we send the name: and the value: from my form 
 function renderTheResultPage(req, res) {
-  // console.log(req.body);
   const search_field = req.body.search_field;
-  // console.log(search_field);
   let searchBy = [];
   searchBy.push(req.body.searchBy);
-  // console.log(searchBy);
   let url = '';
-  let x = 0
+
   for (let i = 0; i < searchBy.length; i++) {
     if (searchBy[i] === 'Title' || searchBy[i] === 'Author') {
       url = `https://www.googleapis.com/books/v1/volumes?q=${search_field}+${searchBy[i]}` //stolen from my team
-      console.log(`https://www.googleapis.com/books/v1/volumes?q=${search_field}+${searchBy[i]}`);
+
       break;
     } else {
       url = `https://www.googleapis.com/books/v1/volumes?q=${search_field}+${searchBy[i]}` //stolen from my team
@@ -95,9 +130,6 @@ function renderTheResultPage(req, res) {
   superagent.get(url).then(result => {;
     let myBook = result.body.items
     myBook.forEach(object => {
-      // if (object.volumeInfo.imageLinks === true) {
-      //   new Values(object.volumeInfo.title, object.volumeInfo.authors.join(' and '), object.volumeInfo.description, object.volumeInfo.imageLinks.smallThumbnail)
-      // } else {
 
       let image = '';
       if (object.volumeInfo.imageLinks) {
@@ -113,21 +145,34 @@ function renderTheResultPage(req, res) {
         author = object.volumeInfo.authors
       }
       new Values(object.volumeInfo.title, author, object.volumeInfo.description, image)
-        // }
-
     });
 
     res.render('pages/searches/show', { TheBook: arrayBooks })
   })
 }
 
-// function notFoundHandler(request, response) {
-//   response.status(404).sendFile('./error', { root: './pages' })
-// }
+function mainPost(request, response) {
+  let input = request.body.dasArray
+  let values = [input[0], input[1], input[2], input[3]]
+  let SQL = 'INSERT INTO books(image_url,title,author,description)VALUES($1,$2,$3,$4) RETURNING *'
+  client.query(SQL, values)
+    .then(table => {
+      // console.log(table.rows[0].id);
+      let rowContent = table.rows[0].id
+      response.redirect(`/books/details/${rowContent}`)
+    })
+}
 
-// function errorHandler(err, request, response, next) {
-//   response.status(500).render('pages/error');
-// }
+app.use('*', notFoundHandler); // 404 not found url
+app.use(errorHandler);
+
+function notFoundHandler(request, response) {
+  response.status(404).sendFile('./error', { root: './pages' })
+}
+
+function errorHandler(err, request, response, next) {
+  response.status(500).render('pages/error');
+}
 app.get('*', (req, res) => { res.status(404).send('Page Not Found gg man') })
 
 client.connect()

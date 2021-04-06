@@ -1,0 +1,7 @@
+<form action="/books/details/<%= data.id%>?_method=put " method="POST" id="updateF">
+    <input type=" text " value="<%=data.title %> " name="title">
+    <input type="text" value="<%=data.author%> " name="author">
+    <input type="text" value="<%=data.description %> " name="description">
+    <input type="text" value="<%=data.image_url%>" name="image_url">
+    <button type="submit">save update</button>
+</form>

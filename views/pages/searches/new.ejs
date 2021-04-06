@@ -3,22 +3,26 @@
 
 <head>
     <title>Book Engine</title>
-    <link rel="stylesheet" href="/styles/ base.css">
+
+    <link rel="stylesheet" href="/styles/layout.css">
 </head>
 
 <body>
-    <h2>Search by Title or Author</h2>
+    <header>
+        <%- include('./header') %>
+    </header>
 
     <form action="/searches" method="post">
         <fieldset>
+            <legend>Search by Title or Author</legend>
             <input type="text" name="search_field" placeholder="Enter a title or Author" required>
             <div id="row">
                 <label for="Title">Title</label>
-                <input type="checkbox" name="searchBy" value="Title">
+                <input type="radio" name="searchBy" value="Title">
             </div>
             <div id="row">
                 <label for="Author">Author</label>
-                <input type="checkbox" name="searchBy" value="Author">
+                <input type="radio" name="searchBy" value="Author">
             </div>
             <button type="submit">Search the Google Books API</button>
 
